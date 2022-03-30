@@ -56,18 +56,18 @@ function drawSprites () {
     }
     // renderer.place3dImage(ballImage, 10, 73, 0, 1)
     // renderer.place3dImage(ballImage, 11, 72, 0, 1)
-    for (let j = 0; j <= img2X.length - 1; j++) {
-        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 1], img2X[j], Img2Y[j], 0, 10)
+    for (let k = 0; k <= img2X.length - 1; k++) {
+        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 1], img2X[k], Img2Y[k], 0, 10)
     }
     // renderer.place3dImage(ballImage, 10, 73, 0, 1)
     // renderer.place3dImage(ballImage, 11, 72, 0, 1)
-    for (let k = 0; k <= img3X.length - 1; k++) {
-        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 2], img3X[k], img3Y[k], 0, 10)
+    for (let l = 0; l <= img3X.length - 1; l++) {
+        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 2], img3X[l], img3Y[l], 0, 10)
     }
     // renderer.place3dImage(ballImage, 10, 73, 0, 1)
     // renderer.place3dImage(ballImage, 11, 72, 0, 1)
-    for (let l = 0; l <= img4X.length - 1; l++) {
-        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 3], img4X[l], img4Y[l], 0, 10)
+    for (let m = 0; m <= img4X.length - 1; m++) {
+        renderer.place3dImage(TrackObjects[TrackSelected * 4 + 3], img4X[m], img4Y[m], 0, 10)
     }
 }
 // console.log("Number of trees=" + treeX.length)
@@ -4261,6 +4261,7 @@ let CupSelected = 0
 let SelectedX = 0
 let mySprite2: Sprite = null
 let TrackName: TextSprite = null
+let SelectedY = 0
 let dot_V_Right = 0
 let dot_V_Forward = 0
 let forwardDrag = 0
@@ -4268,8 +4269,6 @@ let storedgliderspeed = 0
 let memvarY = 0
 let memvarX = 0
 let gliding = 0
-let carVy = 0
-let carVx = 0
 let fwdY = 0
 let fwdX = 0
 let seconds = 0
@@ -4279,6 +4278,8 @@ let onFinishLine = false
 let isOffroad = false
 let terrain3 = 0
 let char = 0
+let carVy = 0
+let carVx = 0
 let newTerrain = 0
 let dx = 0
 let range = 0
@@ -4305,18 +4306,23 @@ let img1Y: number[] = []
 let TrackSelected = 0
 let TrackObjects: Image[] = []
 let img1X: number[] = []
-let collisionImage: Image = null
 let heading = 0
 let finishLineY1 = 0
 let finishLineX1 = 0
 let finishLineY0 = 0
 let finishLineX0 = 0
+let collisionImage: Image = null
+let px = 0
+let py = 0
+let carAngularVelocity: number = 0
+let carPower: number = 0
+let treeImage = 0
+let dy = 0
 setarrays()
 let inMenu = true
 let inMenuNum = 1
 let OptionsInMenuX = 4
 let OptionsInMenuY = 2
-let SelectedY = 0
 let menuscreen = sprites.create(img`
     9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
     9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
@@ -4753,13 +4759,7 @@ textSprite.setPosition(48, 40)
 textSprite = textsprite.create("Credits")
 textSprite.z = 3
 textSprite.setPosition(48, 60)
-let px = 0
-let py = 0
 let throttle = 1
-let carAngularVelocity: number = 0
-let carPower: number = 0
-let dy = 0
-let treeImage = 0
 let trackImage: Image
 configure()
 let carSprite = sprites.create(img`
@@ -4819,6 +4819,16 @@ enum TerrainType {
 carSprite.y = 100
 game.onUpdate(function () {
     if (!(inMenu)) {
+        carAngularDrag = 0.75 + Math.abs(carVx + carVy) / 20
+        if (controller.B.isPressed()) {
+            carAngularDragDrift = 20
+        } else {
+            carAngularDragDrift = 100
+        }
+    }
+})
+game.onUpdate(function () {
+    if (!(inMenu)) {
         if (controller.left.isPressed()) {
             carSprite.setImage(CharacterAnimateLeft[char])
         } else if (controller.right.isPressed()) {
@@ -4870,18 +4880,22 @@ if (heading < 0) {
         fwdX = Math.sin(heading * Math.PI / 180)
         fwdY = 0 - Math.cos(heading * Math.PI / 180)
         let deltaTime = control.eventContext().deltaTime
-carPower = controller.A.isPressed() ? 4 * deltaTime : controller.dy(-2)
+carPower = controller.A.isPressed() ? 2 * deltaTime : controller.dy(-2)
 carVx += carPower * fwdX
         carVy += carPower * fwdY
-        if (collisionImage.getPixel(px + carVx, py) != 3) {
+        if (collisionImage.getPixel(px + carVx, py) == 3) {
+            carSprite.startEffect(effects.fire, 200)
+        } else if (collisionImage.getPixel(px + carVx, py) == 13 && carSprite.y == 100) {
+            carSprite.startEffect(effects.fire, 200)
+        } else {
             px += carVx
-        } else {
-            carSprite.startEffect(effects.fire, 200)
         }
-        if (collisionImage.getPixel(px, py + carVy) != 3) {
-            py += carVy
-        } else {
+        if (collisionImage.getPixel(px, py + carVy) == 3) {
             carSprite.startEffect(effects.fire, 200)
+        } else if (collisionImage.getPixel(px, py + carVy) == 13 && carSprite.y == 100) {
+            carSprite.startEffect(effects.fire, 200)
+        } else {
+            py += carVy
         }
         if (collisionImage.getPixel(px, py) == 8 && carSprite.y == 100) {
             carSprite.ay = -500
@@ -4924,17 +4938,15 @@ carVx += carPower * fwdX
             gliding = 2
         }
         if (gliding == 2) {
-            if (controller.up.isPressed()) {
+            if (controller.player2.isPressed(ControllerButton.Up)) {
                 storedgliderspeed += 1
-                carSprite.ay = 200
-            } else if (controller.down.isPressed()) {
-                if (storedgliderspeed > 0) {
-                    carSprite.ay = -200
-                    storedgliderspeed += -1
-                }
+                carSprite.ay = 100
+            } else if (controller.player2.isPressed(ControllerButton.Down) && storedgliderspeed > 0) {
+                carSprite.ay = -200
+                storedgliderspeed += -1
             } else {
                 carSprite.ay = 0
-                carSprite.vy = 50
+                carSprite.vy = 40
             }
         }
         forwardDrag = carDragForward
@@ -5260,13 +5272,13 @@ if (isOffroad) {
                             )
                             timer.after(1, function () {
                                 Selector.x = 36
-                                for (let index = 0; index <= 7; index++) {
-                                    mySprite2 = sprites.create(ImagesForCharacters[index], SpriteKind.Text)
+                                for (let index2 = 0; index2 <= 7; index2++) {
+                                    mySprite2 = sprites.create(ImagesForCharacters[index2], SpriteKind.Text)
                                     mySprite2.z = 3
-                                    if (index < 4) {
-                                        mySprite2.setPosition(36 + index * 28, 44)
+                                    if (index2 < 4) {
+                                        mySprite2.setPosition(36 + index2 * 28, 44)
                                     } else {
-                                        mySprite2.setPosition(36 + (index - 4) * 28, 72)
+                                        mySprite2.setPosition(36 + (index2 - 4) * 28, 72)
                                     }
                                 }
                             })
@@ -5486,13 +5498,13 @@ if (isOffroad) {
                     true
                     )
                     Selector.x = 36
-                    for (let index = 0; index <= 7; index++) {
-                        mySprite2 = sprites.create(ImagesForCups[index], SpriteKind.Text)
+                    for (let index3 = 0; index3 <= 7; index3++) {
+                        mySprite2 = sprites.create(ImagesForCups[index3], SpriteKind.Text)
                         mySprite2.z = 3
-                        if (index < 4) {
-                            mySprite2.setPosition(36 + index * 28, 44)
+                        if (index3 < 4) {
+                            mySprite2.setPosition(36 + index3 * 28, 44)
                         } else {
-                            mySprite2.setPosition(36 + (index - 4) * 28, 72)
+                            mySprite2.setPosition(36 + (index3 - 4) * 28, 72)
                         }
                     }
                 })
@@ -5586,10 +5598,10 @@ if (isOffroad) {
                             TrackName = textsprite.create("")
                             TrackName.z = 4
                             TrackName.setPosition(48, 148)
-                            for (let index = 0; index <= 3; index++) {
-                                TrackPreview = sprites.create(ImagesForTracks[index + CupSelected], SpriteKind.trackPreview)
+                            for (let index4 = 0; index4 <= 3; index4++) {
+                                TrackPreview = sprites.create(ImagesForTracks[index4 + CupSelected], SpriteKind.trackPreview)
                                 TrackPreview.z = 3
-                                TrackPreview.setPosition(index * 20 + 50, 130)
+                                TrackPreview.setPosition(index4 * 20 + 50, 130)
                             }
                             SelectedX = 0
                             SelectedY = 0
@@ -5696,16 +5708,6 @@ if (isOffroad) {
             }
         } else {
         	
-        }
-    }
-})
-game.onUpdate(function () {
-    if (!(inMenu)) {
-        carAngularDrag = 0.75 + Math.abs(carVx + carVy) / 20
-        if (controller.B.isPressed()) {
-            carAngularDragDrift = 20
-        } else {
-            carAngularDragDrift = 100
         }
     }
 })
