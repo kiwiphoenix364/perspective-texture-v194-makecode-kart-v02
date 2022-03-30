@@ -1,5 +1,6 @@
 {
     "name": "perspective texture v1.9.4 Makecode Kart v0.2",
+    "version": "0.1.0",
     "description": "",
     "dependencies": {
         "device": "*",
