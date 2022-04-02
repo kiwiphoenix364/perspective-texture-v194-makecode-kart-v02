@@ -21,8 +21,7 @@
         "images.g.jres",
         "images.g.ts",
         "renderer.ts",
-        "fx14.ts",
-        null
+        "fx14.ts"
     ],
     "testFiles": [
         "test.ts"
